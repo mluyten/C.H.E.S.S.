@@ -79,7 +79,7 @@ np.savetxt(os.path.join('camera_calibration', cam_mat_filename), K, delimiter=',
 print(f"Saved camera matrix as '{cam_mat_filename}'")
 
 dist_coeff_filename = 'dist_coeff.csv'
-np.savetxt(os.path.join('camera_calibration', dist_coeff_filename), K, delimiter=',')
+np.savetxt(os.path.join('camera_calibration', dist_coeff_filename), dist, delimiter=',')
 print(f"Saved distortion coefficients as '{dist_coeff_filename}'")
 
 # Calculate re-projection error - should be close to zero.

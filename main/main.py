@@ -2,16 +2,31 @@
 
 import sys
 import cv2
+import numpy as np
 
 CAM_NUM = 0
+CAM_WIDTH = 640
+CAM_HEIGHT = 480
 FPS = 30
 
 
 def main():
+    # read in camera matrix and distortion coefficients
+    cam_mat_file = open('../camera_calibration/camera_matrix.csv', 'rb')
+    dist_coeff_file = open('../camera_calibration/dist_coeff.csv', 'rb')
+    # read matrices from file
+    K = np.loadtxt(cam_mat_file, delimiter=',')
+    dist_coeffs = np.loadtxt(dist_coeff_file, delimiter=',')
+    # close files
+    cam_mat_file.close()
+    dist_coeff_file.close()
+
     # Initialize image capture from camera.
-    video_capture = cv2.VideoCapture(CAM_NUM)  # Open video capture object
-    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1920 / 3)   # set cam width
-    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080 / 3)  # set cam height
+    video_capture = cv2.VideoCapture(CAM_NUM)  # Open videoq capture object
+    video_capture.set(cv2.CAP_PROP_CONVERT_RGB, True)
+    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, CAM_WIDTH)   # set cam width
+    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, CAM_HEIGHT)  # set cam height
+    print(f'Initialized camera with resolution {CAM_WIDTH}x{CAM_HEIGHT}')
 
     is_ok, bgr_image_input = video_capture.read()  # Make sure we can read video
     if not is_ok:
