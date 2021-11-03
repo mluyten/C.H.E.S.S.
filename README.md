@@ -1,5 +1,5 @@
 # C.H.E.S.S.
-butts
+
 ## Objective
 We aim to create an augmented reality game of chess with no physical chess pieces; pieces are displayed on a video feed from a camera that is observing the board. Pieces shall be moved virtually by the user. For the initial implementation, the user will move a piece by clicking on the square of the piece it wishes to move and then clicking on the desired location for said pieces. As moves are made, the corresponding pieces are moved on screen. We plan to display the chess pieces as 2D pieces on the chessboard.
 
