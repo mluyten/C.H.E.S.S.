@@ -23,7 +23,6 @@ def main():
 
     # Initialize image capture from camera.
     video_capture = cv2.VideoCapture(CAM_NUM)  # Open videoq capture object
-    video_capture.set(cv2.CAP_PROP_CONVERT_RGB, True)
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, CAM_WIDTH)   # set cam width
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, CAM_HEIGHT)  # set cam height
     print(f'Initialized camera with resolution {CAM_WIDTH}x{CAM_HEIGHT}')
