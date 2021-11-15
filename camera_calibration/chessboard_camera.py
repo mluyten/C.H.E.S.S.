@@ -4,6 +4,8 @@ import sys
 # This program captures images of a chessboard, finds corners, and saves the images.
 # Note that the chessboard must have an unequal number of rows and columns.
 CAMERA_NUMBER = 0       # 0 is the default camera
+CAM_WIDTH = 640
+CAM_HEIGHT = 480
 PATTERN_SIZE = (7, 6)
 
 
@@ -23,6 +25,8 @@ def create_named_window(window_name, image):
 def main():
     # Initialize image capture from camera.
     video_capture = cv2.VideoCapture(CAMERA_NUMBER)  # Open video capture object
+    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, CAM_WIDTH)  # set cam width
+    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, CAM_HEIGHT)  # set cam height
     is_ok, bgr_image_input = video_capture.read()  # Make sure we can read video
     if not is_ok:
         print("Cannot read video source")

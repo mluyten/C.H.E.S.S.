@@ -34,7 +34,6 @@ target_pts[:, :2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
 # Arrays to store object points and image points from all the images.
 objpoints = []  # Collect all 3d points in target coordinates
 imgpoints = []  # Collect all 2d points in image plane
-
 images = glob.glob('camera_calibration/cam_images/*.png')     # Get list of filenames in this folder
 if len(images) == 0:
     print('Images not found.')
@@ -51,6 +50,7 @@ for fname in images:
     ret_val, corners = cv2.findChessboardCorners(gray_image, PATTERN_SIZE, None)
     # If found, add object and image points.
     if ret_val == True:
+        print(fname)
         # Optionally refine corner locations.
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         corners2 = cv2.cornerSubPix(gray_image, corners, (11, 11), (-1, -1), criteria)
