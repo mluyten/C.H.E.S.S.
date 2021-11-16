@@ -18,12 +18,30 @@ CORNERS_WORLD = np.array([[SQUARE_WIDTH, SQUARE_WIDTH, 0],
                  [BOARD_SIZE * SQUARE_WIDTH, SQUARE_WIDTH, 0],
                  [BOARD_SIZE * SQUARE_WIDTH, BOARD_SIZE * SQUARE_WIDTH, 0]], dtype=np.float32)
 
-points = np.array([[SQUARE_WIDTH / 2, SQUARE_WIDTH / 2, 0],
-                    [SQUARE_WIDTH * BOARD_SIZE + (SQUARE_WIDTH / 2),
-                    SQUARE_WIDTH * BOARD_SIZE + (SQUARE_WIDTH / 2), 0]], dtype=np.float32)
+CORNERS_AFFINE = np.array([[100, 100],
+                 [100 * BOARD_SIZE, 100],
+                 [100, 100 * BOARD_SIZE],
+                 [100 * BOARD_SIZE, 100 * BOARD_SIZE]], dtype=np.float32)
 
-squares = ["A1", "H8"]
+SQUARES = np.chararray((BOARD_SIZE + 1, BOARD_SIZE + 1, 2), itemsize=2)
 
+STARTING_PIECES = {
+    "r": ["A1", "H1"],
+    "n": ["B1", "G1"],
+    "b": ["C1", "F1"],
+    "q": ["D1"],
+    "k": ["E1"],
+    "p": ["A2", "B2", "C2", "D2", "E2", "F2", "G2", "H2"],
+    "R": ["A8", "H8"],
+    "N": ["B8", "G8"],
+    "B": ["C8", "F8"],
+    "Q": ["D8"],
+    "K": ["E8"],
+    "P": ["A7", "B7", "C7", "D7", "E7", "F7", "G7", "H7"],
+}
+
+outerCorners = None
+bgr_image = None
 
 def findPoseAndDrawOrigin(pts, K, bgr_image):
     PoseFound, rvec, tvec = cv2.solvePnP(objectPoints=CORNERS_WORLD, imagePoints=pts, cameraMatrix=K, distCoeffs=None) # Finds r and t vectors for homography
@@ -46,7 +64,7 @@ def closest(lst, K):
     return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
 
 
-def order_points(corners, aruco_location):
+def orderPoints(corners, aruco_location):
     aruco_center = np.array([np.average(aruco_location[0, :, 0]), np.average(aruco_location[0, :, 1])])
 
     corners_reshape = corners.reshape((49, 2)) # reshape to 40x2 array
@@ -65,6 +83,59 @@ def order_points(corners, aruco_location):
 
     return corners_reshape.reshape((49, 1, 2))
 
+# Generates a 2D array of board spaces A1-H8
+def genSpaces():
+    for i in range(BOARD_SIZE + 1):
+        for j in range(BOARD_SIZE + 1):
+            SQUARES[i][j][0] = str(chr(65 + j)) + str(i + 1)
+            SQUARES[i][j][1] = setBoard(str(chr(65 + j)) + str(i + 1))
+
+# Adds the starting positions of each piece on the board
+def setBoard(position):
+    for piece in STARTING_PIECES:
+        for square in STARTING_PIECES[piece]:
+            if str(position) == square:
+                return piece
+    return ""
+
+# Draws the name of each square on the board
+def drawPositions(bgr_image, K, Mext):
+    for i in range(BOARD_SIZE + 1):
+        for j in range(BOARD_SIZE + 1):
+            pos = np.array([SQUARE_WIDTH / 2 + i * SQUARE_WIDTH, SQUARE_WIDTH / 2 + j * SQUARE_WIDTH, 0], dtype=np.float32)
+            p = K @ Mext @ (np.block([pos, 1]).T)
+            point = (int(p[0] / p[2]), int(p[1] / p[2]))
+            cv2.putText(bgr_image, text=str(SQUARES[i][j][0].decode("utf-8")), org=point,
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(0, 0, 255), thickness=2)
+            cv2.drawMarker(bgr_image, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS)
+
+# Finds the homography of the board
+def findBoardHomography(bgr_image, K):
+    global outerCorners
+    arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)
+    arucoCorners, ids, _ = cv2.aruco.detectMarkers(
+        image=bgr_image,
+        dictionary=arucoDict
+    )
+    ret_val, corners = cv2.findChessboardCorners(image=bgr_image, patternSize=(BOARD_SIZE, BOARD_SIZE))
+
+    if ret_val and ids is not None:
+        ret_val, corners = cv2.findChessboardCorners(image=bgr_image, patternSize=(BOARD_SIZE, BOARD_SIZE))
+        corners = orderPoints(corners, arucoCorners[0])
+        outerCorners = np.array([[corners[0][0][0], corners[0][0][1]],  # Finds the outer corners of the findChessBoardCorners points
+             [corners[BOARD_SIZE - 1][0][0], corners[BOARD_SIZE - 1][0][1]],
+             [corners[BOARD_SIZE ** 2 - BOARD_SIZE][0][0], corners[BOARD_SIZE ** 2 - BOARD_SIZE][0][1]],
+             [corners[BOARD_SIZE ** 2 - 1][0][0], corners[BOARD_SIZE ** 2 - 1][0][1]]], dtype=np.float32)
+
+        gotPose, rvec, tvec = findPoseAndDrawOrigin(outerCorners, K, bgr_image)  # Find homography and draw
+        if gotPose:
+            R = cv2.Rodrigues(rvec)
+            return True, np.block([[R[0], tvec], [0, 0, 0, 1]])
+        else:
+            return False, None
+    else:
+        return False, None
 
 def main():
     # read in camera matrix and distortion coefficients
@@ -76,6 +147,9 @@ def main():
     # close files
     cam_mat_file.close()
     dist_coeff_file.close()
+
+    genSpaces()
+    global outerCorners
 
     if WEBCAM:
         video_capture = cv2.VideoCapture(CAM_NUM)  # Open video capture object
@@ -89,6 +163,11 @@ def main():
         print("Cannot read video source")
         sys.exit()
 
+    param = [None]
+    got_vid, bgr_image = video_capture.read()
+    cv2.namedWindow("vid")
+    cv2.setMouseCallback("vid", click, param)
+
     if WRITE_VIDEO:
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         videoWriter = cv2.VideoWriter("output.mp4", fourcc=fourcc, fps=30.0,
@@ -100,47 +179,24 @@ def main():
         got_vid, bgr_image = video_capture.read()
         if not got_vid:
             break  # no camera, or reached end of video file
-
-        # get aruco dictionary
-        arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100)
-        # Detect aruco marker
-        aruco_corners, aruco_ids, _ = cv2.aruco.detectMarkers(image=bgr_image, dictionary=arucoDict)
-
-        # Find the chess board corners.
-        ret_val, corners = cv2.findChessboardCorners(image=bgr_image, patternSize=(BOARD_SIZE, BOARD_SIZE))
-
         bgr_display = bgr_image.copy()
-        if ret_val and len(aruco_corners) != 0:
-            aruco_center = (np.average(aruco_corners[0][0, :, 0]), np.average(aruco_corners[0][0, :, 1]))
-            cv2.drawMarker(bgr_display, position=aruco_center, color=(255, 0, 0), markerType=cv2.MARKER_CROSS,
-                           thickness=3, line_type=cv2.LINE_AA)
-            # reorder points based on aruco location
-            corners = order_points(corners, aruco_corners[0])
+        gotHomography, H = findBoardHomography(bgr_display, K)  # Returns homography from camera to world coordinates if chess board and aruco marker are detected
+        if gotHomography:
+            Mext = H[0:3][:]
+            drawPositions(bgr_display, K, Mext)
+            if param[-1] != None:
+                cv2.putText(bgr_display, text=param[-1], org=(10, 470),  # Displays name of clicked square at bottom right of screen
+                           fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                           fontScale=1, color=(255, 0, 255), thickness=2)
 
-            outer_corners = np.array([[corners[0][0][0], corners[0][0][1]],  # Finds the outer corners of the findChessBoardCorners points
-                             [corners[BOARD_SIZE - 1][0][0], corners[BOARD_SIZE - 1][0][1]],
-                             [corners[BOARD_SIZE ** 2 - BOARD_SIZE][0][0], corners[BOARD_SIZE ** 2 - BOARD_SIZE][0][1]],
-                             [corners[BOARD_SIZE ** 2 - 1][0][0], corners[BOARD_SIZE ** 2 - 1][0][1]]], dtype=np.float32)
-
-            gotPose, rvec, tvec = findPoseAndDrawOrigin(outer_corners, K, bgr_display) # Find homography and draw
-            if gotPose:
-                R = cv2.Rodrigues(rvec)
-                H = np.block([[R[0], tvec], [0, 0, 0, 1]])
-                Mext = H[0:3][:]
-                for i in range(len(squares)):
-                    p = K @ Mext @ np.block([points[i], 1]).T
-                    point = (int(p[0] / p[2]), int(p[1] / p[2]))
-                    cv2.putText(bgr_display, text=squares[i], org=point,
-                                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                fontScale=0.5, color=(0, 0,255), thickness=2)
-                    cv2.drawMarker(bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS, line_type=cv2.LINE_AA)
         else:
-            cv2.putText(bgr_display, text="Chessboard/ArUco Not Found", org=(10, 40),
+            outerCorners = None
+            cv2.putText(bgr_display, text="Chessboard/ArUco Not Found", org=(10, 470),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=1, color=(0, 0, 255), thickness=2)
+                        fontScale=1, color=(255, 0, 255), thickness=2)
+
         cv2.imshow("vid", bgr_display)
         key_pressed = cv2.waitKey(int(1000 / FPS))
-        # key_pressed = cv2.waitKey(0)
         if key_pressed == 27:
             break
 
@@ -153,6 +209,20 @@ def main():
     video_capture.release()
     cv2.destroyAllWindows()
 
+def click(event, x, y, flags, param):
+    if event == cv2.EVENT_LBUTTONDOWN:
+        global outerCorners
+        global bgr_image
+        if outerCorners.any() != None:
+            H, _ = cv2.findHomography(outerCorners, CORNERS_AFFINE)  # Finds orthophoto homography
+            point = H @ [x, y, 1]  # Calculates position of mouse click point on orthophoto
+            point[0] = point[0] / point[2]
+            point[1] = point[1] / point[2]
+
+            if point[0] < ((BOARD_SIZE + 1) * 100) and point[0] > 0 and point[1] < ((BOARD_SIZE + 1) * 100) and point[1] > 0:
+                param.append(str(SQUARES[int(point[1]/100)][int(point[0]/100)][0].decode("utf-8")))
+            else:
+                param.append("Not on Board")
 
 if __name__ == '__main__':
     main()
