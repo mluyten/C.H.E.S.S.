@@ -18,7 +18,7 @@ CORNERS_WORLD = np.array([[SQUARE_WIDTH, SQUARE_WIDTH, 0],
                  [BOARD_SIZE * SQUARE_WIDTH, SQUARE_WIDTH, 0],
                  [BOARD_SIZE * SQUARE_WIDTH, BOARD_SIZE * SQUARE_WIDTH, 0]], dtype=np.float32)
 
-CORNERS_AFFINE = np.array([[100, 100],
+CORNERS_ORTHO = np.array([[100, 100],
                  [100 * BOARD_SIZE, 100],
                  [100, 100 * BOARD_SIZE],
                  [100 * BOARD_SIZE, 100 * BOARD_SIZE]], dtype=np.float32)
@@ -214,7 +214,7 @@ def click(event, x, y, flags, param):
         global outerCorners
         global bgr_image
         if outerCorners.any() != None:
-            H, _ = cv2.findHomography(outerCorners, CORNERS_AFFINE)  # Finds orthophoto homography
+            H, _ = cv2.findHomography(outerCorners, CORNERS_ORTHO)  # Finds orthophoto homography
             point = H @ [x, y, 1]  # Calculates position of mouse click point on orthophoto
             point[0] = point[0] / point[2]
             point[1] = point[1] / point[2]
