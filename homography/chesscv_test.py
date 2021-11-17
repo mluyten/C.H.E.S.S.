@@ -17,6 +17,7 @@ while CV.got_video:
                         # Displays name of clicked square at bottom right of screen
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=1, color=(255, 0, 255), thickness=2)
+
     else:
         CV.outer_corners = None
         cv2.putText(CV.bgr_display, text="Chessboard/ArUco Not Found", org=(10, 470),
@@ -24,5 +25,6 @@ while CV.got_video:
                     fontScale=1, color=(255, 0, 255), thickness=2)
 
     cv2.imshow("vid", CV.bgr_display)
-    cv2.waitKey(int(1000 / CV.fps))
-
+    key_press = cv2.waitKey(int(1000 / CV.fps))
+    if key_press == 27:
+        break

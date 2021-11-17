@@ -17,27 +17,34 @@ class CCV:
         dist_coeff_file.close()
         self.fps = fps
 
+        # stores board parameters
         self.square_width = square_width
         self.board_size = board_size
+        # stores the corners of the board in world coordinates
         self.corners_world = np.array([[square_width, square_width, 0],
                                        [square_width, board_size * square_width, 0],
                                        [board_size * square_width, square_width, 0],
                                        [board_size * square_width, board_size * square_width, 0]], dtype=np.float32)
+        # stores the corners of the board in a (board_size + 1) * 100 x (board_size + 1) * 100 orthophoto
         self.corners_ortho = np.array([[100, 100],
                                        [100 * board_size, 100],
                                        [100, 100 * board_size],
                                        [100 * board_size, 100 * board_size]], dtype=np.float32)
         self.outer_corners = None
+        # creates and populates an array of labels for the squares on the chess board
         self.squares = np.chararray((board_size + 1, board_size + 1, 2), itemsize=2)
         self.gen_spaces()
 
+        # stores camera parameters
         self.cam_height = cam_height
         self.cam_width = cam_width
+        # creates video writer if write_video flag is True
         self.write_video = write_video
         if write_video:
             fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
             self.videoWriter = cv2.VideoWriter(output_video, fourcc=fourcc, fps=30.0,
                                           frameSize=(cam_width, cam_height))
+        # streams video from webcam if webcam flag is true - else, streams video from local video file
         if webcam:
             self.video_capture = cv2.VideoCapture(cam_number)  # Open video capture object
             self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, cam_width)  # set cam width
@@ -45,13 +52,14 @@ class CCV:
         else:
             self.video_capture = cv2.VideoCapture(input_video)  # Open video capture object
 
+        # stores bgr images and attempts to pull a frame from video_capture device
         self.bgr_image = None
         self.bgr_display = None
         self.next_frame()
         if not self.got_video:
             print("Cannot read video source")
 
-    def next_frame(self):
+    def next_frame(self):  # pulls frames from
         if self.bgr_display is not None:
             if self.write_video:
                 self.videoWriter.write(self.bgr_display)
@@ -62,7 +70,8 @@ class CCV:
         if not self.got_video:
             return None
         else:
-            gotHomography, H = self.find_board_homography()  # Returns homography from camera to world coordinates if chess board and aruco marker are detected
+            # Returns homography from camera to world coordinates if chess board and aruco marker are detected
+            gotHomography, H = self.find_board_homography()
             if gotHomography:
                 return H[0:3][:]
             else:
@@ -106,7 +115,7 @@ class CCV:
     def gen_spaces(self):
         for i in range(self.board_size + 1):
             for j in range(self.board_size + 1):
-                self.squares[i][j][0] = str(chr(65 + j)) + str(i + 1)
+                self.squares[i][j][0] = str(chr(97 + j)) + str(i + 1)
 
     def draw_spaces_and_origin(self, Mext):
         if self.bgr_display is not None:
