@@ -17,20 +17,33 @@ while CV.got_video:
         CV.draw_spaces_and_origin(Mext)
 
         #get board state
-        game.getGameState()
+        board = game.getGameState()
         #draw board state
+        #print(board)
 
-        game.playGame()
+        gameEnded = game.playGame()
+
+        if (gameEnded):
+            break
 
         #get user input
+        #print(param)
         if param[-1] is not None:
             cv2.putText(CV.bgr_display, text=param[-1], org=(10, 470),
                         # Displays name of clicked square at bottom right of screen
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=1, color=(255, 0, 255), thickness=2)
-            if game.Human.isMyTurn:
-                #todo: send selection to human player class
-                pass
+            if game.players[game.currentPlayer] == game.Human:
+                if not game.Human.haveSelectedFromPiece:
+                    game.Human.selectedSquare = param[-1]
+                    game.Human.haveSelectedFromPiece = True
+                elif (not game.Human.haveSelectedToPiece) and (game.Human.haveDeterminedMoves):
+                    game.Human.selectedSquare = param[-1]
+                    game.Human.haveSelectedToPiece = True
+
+            param.pop()
+
+
 
     else:
         CV.outer_corners = None

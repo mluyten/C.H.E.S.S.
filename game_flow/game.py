@@ -2,26 +2,30 @@
 #game loop here
 
 import chess
-import player
+import game_flow.player as player
 
 class Game:
     def __init__(self):
         self.board = chess.Board()
         self.AI = player.AIPlayer(chess.WHITE)
         self.Human = player.HumanPlayer(chess.BLACK)
+        self.players = [self.AI, self.Human]
         #need two players
         #need to set players colors
         #need to set and store which player will go first
-        self.AI.isMyTurn = True
+        self.currentPlayer = 0
 
     def playGame(self):
         if (self.end_conditions()):
-            #todo: go to game end here
-            return
-        if (self.AI.isMyTurn):
-            self.AI.doMove(self.board)
-        elif(self.Human.isMyTurn):
-            self.Human.doMove(self.board)
+            return True
+        # if (self.AI.isMyTurn):
+        #     self.AI.doMove(self.board)
+        # elif(self.Human.isMyTurn):
+        #     self.Human.doMove(self.board)
+        #print(self.currentPlayer)
+        turn_completed = self.players[self.currentPlayer].doMove(self.board)
+        if (turn_completed):
+            self.currentPlayer = 1 - self.currentPlayer
 
     def getGameState(self):
         # Caleb: feel free to edit this! this is intended to get you what you need of the game state
