@@ -3,6 +3,7 @@
 
 import chess
 import game_flow.player as player
+import numpy as np
 
 class Game:
     def __init__(self):
@@ -28,8 +29,9 @@ class Game:
             self.currentPlayer = 1 - self.currentPlayer
 
     def getGameState(self):
-        # Caleb: feel free to edit this! this is intended to get you what you need of the game state
-        return self.board
+        split_board = str(self.board).split('\n')
+        final_board = np.array([row.split(' ') for row in split_board])
+        return np.rot90(final_board, 2)
 
     def end_conditions(self):
         if self.board.is_checkmate() or self.board.is_stalemate() or self.board.is_fivefold_repetition() or self.board.is_seventyfive_moves():
