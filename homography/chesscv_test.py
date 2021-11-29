@@ -30,11 +30,17 @@ while CV.got_video:
 
         if (gameEnded):
             cv2.putText(CV.bgr_display,text=game.outcomeString, org=(10, 40),
-                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                    fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                                     fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
             cv2.putText(CV.bgr_display, text="Play Again? (y/n)", org=(10, CV.cam_height - 20),
-                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                         fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display,text=game.outcomeString, org=(12, 40),
+                                    fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                                    fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display, text="Play Again? (y/n)", org=(12, CV.cam_height - 20),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
             if key_press == ord('y'):
                 game.resetBoard()
                 CV.captured_pieces = []
