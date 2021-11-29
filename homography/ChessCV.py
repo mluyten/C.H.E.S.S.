@@ -65,6 +65,27 @@ class CCV:
         if not self.got_video:
             print("Cannot read video source")
 
+        self.material_dim = 20
+        start =  int((self.cam_height - 16 * self.material_dim) / 2)
+        self.material_bar = [[(10, start), (30, self.cam_height - start)],
+                             [(self.cam_width - 10 - self.material_dim, start), (self.cam_width - 10, self.cam_height - start)]]
+        self.captured_pieces = []
+
+        self.icon_dict = {
+            'K': [0, 0],
+            'k': [1, 0],
+            'Q': [0, 1],
+            'q': [1, 1],
+            'B': [0, 2],
+            'b': [1, 2],
+            'N': [0, 3],
+            'n': [1, 3],
+            'R': [0, 4],
+            'r': [1, 4],
+            'P': [0, 5],
+            'p': [1, 5]}
+
+
     def readIcons(self, chess_icons):
         # read icons in the order: K, Q, B, N, R, P
         icon_map = cv2.imread(chess_icons, cv2.IMREAD_UNCHANGED)
@@ -153,6 +174,7 @@ class CCV:
                                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                     fontScale=0.75, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
                         cv2.drawMarker(self.bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS, line_type=cv2.LINE_AA)
+
             if self.outer_corners is not None:
                 found_pose, rvec, tvec = self.find_pose(self.outer_corners)
                 if found_pose:
@@ -223,39 +245,19 @@ class CCV:
 
         for row in range(len(board_state)):
             for col in range(len(board_state[row])):
-                # draw white pieces
-                if board_state[row, col] == 'K':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[0][0], 700-col*100, row*100)
-                elif board_state[row, col] == 'Q':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[0][1], 700-col*100, row*100)
-                elif board_state[row, col] == 'B':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[0][2], 700-col*100, row*100)
-                elif board_state[row, col] == 'N':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[0][3], 700-col*100, row*100)
-                elif board_state[row, col] == 'R':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[0][4], 700-col*100, row*100)
-                elif board_state[row, col] == 'P':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[0][5], 700-col*100, row*100)
-
-                # draw black pieces
-                elif board_state[row, col] == 'k':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[1][0], 700-col*100, row*100)
-                elif board_state[row, col] == 'q':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[1][1], 700-col*100, row*100)
-                elif board_state[row, col] == 'b':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[1][2], 700-col*100, row*100)
-                elif board_state[row, col] == 'n':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[1][3], 700-col*100, row*100)
-                elif board_state[row, col] == 'r':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[1][4], 700-col*100, row*100)
-                elif board_state[row, col] == 'p':
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[1][5], 700-col*100, row*100)
+                if board_state[row, col] != '.':
+                    icon = self.icon_dict[board_state[row, col]]
+                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[icon[0]][icon[1]], 700-col*100, row*100)
 
         return ortho_photo_out
 
     def show_image(self, window_name, board_state):
 
         if self.outer_corners is not None and self.corners_ortho is not None:
+            cv2.rectangle(self.bgr_display, self.material_bar[0][0], self.material_bar[0][1], (0, 0, 0), -1)
+            cv2.rectangle(self.bgr_display, self.material_bar[1][0], self.material_bar[1][1], (255, 255, 255), -1)
+            self.draw_captured_pieces()
+
             H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
             H_inv = np.linalg.inv(H)
             ortho_photo = self.add_pieces_to_board(board_state)
@@ -263,6 +265,22 @@ class CCV:
             self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA), warped_pieces, 0, 0)
 
         cv2.imshow(window_name, self.bgr_display)
+
+    def draw_captured_pieces(self):
+        white_captured = 0
+        black_captured = 0
+        for piece in self.captured_pieces:
+            if ord(piece) >= ord('a'):
+                org = (self.material_bar[1][0][0], self.material_bar[1][0][1] + self.material_dim * black_captured)
+                black_captured += 1
+            else:
+                org = (self.material_bar[0][0][0], self.material_bar[0][0][1] + self.material_dim * white_captured)
+                white_captured += 1
+            icon = self.icon_dict[piece]
+            self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA), cv2.resize(self.icons[icon[0]][icon[1]], (20,20)), org[0], org[1])
+
+
+
 
 
 def closest(lst, K):

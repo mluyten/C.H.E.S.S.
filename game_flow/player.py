@@ -23,8 +23,12 @@ class AIPlayer(Player):
         legal_moves = list(board.legal_moves)
         random_index = int(random.random() * len(legal_moves))
         move = str(legal_moves[random_index])
+        if board.is_capture(legal_moves[random_index]):
+            captured_piece = board.piece_at(chess.parse_square(move[2:4]))
+        else:
+            captured_piece = None
         board.push_san(move)
-        return True
+        return True, captured_piece
 
 
 class HumanPlayer(Player):
@@ -42,7 +46,7 @@ class HumanPlayer(Player):
     def doMove(self, board):
         # print("human do move")
         if ( not self.haveSelectedFromPiece):
-            return False
+            return False, None
         elif ( not self.haveDeterminedMoves):
             legal_moves = list(board.legal_moves)
             index = chess.parse_square(self.selectedSquare)
@@ -53,11 +57,11 @@ class HumanPlayer(Player):
             if (len(self.my_moves) == 0):
                 print("invalid source square. please select a new one")
                 self.haveSelectedFromPiece = False
-                return False
+                return False, None
             self.haveDeterminedMoves = True
-            return False
+            return False, None
         elif (not self.haveSelectedToPiece):
-            return False
+            return False, None
         else:
             my_move = None
             index = chess.parse_square(self.selectedSquare)
@@ -68,8 +72,15 @@ class HumanPlayer(Player):
             if my_move == None:
                 print("invalid destination square. please select a new one")
                 self.haveSelectedToPiece = False
-                return False
+                return False, None
+
+            if board.is_capture(move):
+                captured_piece = str(board.piece_at(chess.parse_square(str(move)[2:4])))
+            else:
+
+                captured_piece = None
             move = str(move)
+
             print("player move: ", move)
             board.push_san(move)
             #get san
@@ -79,10 +90,10 @@ class HumanPlayer(Player):
             self.haveDeterminedMoves = False
             self.haveSelectedToPiece = False
             self.my_moves = []
-            return True
+            return True, captured_piece
 
         #random_index = int(random.random() * len(legal_moves))
         #move = str(legal_moves[random_index])
         #board.push_san(move)
         #self.isMyTurn = False
-        return False
+        return False, None
