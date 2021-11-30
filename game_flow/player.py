@@ -54,7 +54,7 @@ class HumanPlayer(Player):
         elif (not self.haveDeterminedMoves):
             legal_moves = list(board.legal_moves)
             index = chess.parse_square(self.selectedSquare)
-            print(legal_moves)
+            #print(legal_moves)
             for move in legal_moves:
                 if move.from_square == index:
                     self.my_moves.append(move)

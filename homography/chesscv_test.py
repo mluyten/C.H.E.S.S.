@@ -59,18 +59,11 @@ while CV.got_video:
                         game.Human.selectedSquare = param[-1]
                         game.Human.haveSelectedFromPiece = True
                     elif (not game.Human.haveSelectedToPiece) and game.Human.haveDeterminedMoves:
-
                         game.Human.selectedSquare = param[-1]
                         game.Human.haveSelectedToPiece = True
 
                     #  find valid moves from board from game object
                     if game.Human.haveSelectedFromPiece:
-                        legal_moves = list(game.board.legal_moves)
-                        print(legal_moves)
-                        for move in legal_moves:
-                            if move.from_square == param[-1]:
-                                game.Human.my_moves.append(move)
-                        print(game.Human.my_moves)
                         CV.show_current_moves(board_array=game.getGameState(), move=param[1],
                                               move_options=game.Human.my_moves)
 

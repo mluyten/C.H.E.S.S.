@@ -261,38 +261,31 @@ class CCV:
         return ortho_photo_out
 
     def show_current_moves(self, board_array, move, move_options):
-        print("henlo")
-        print(move_options)
-        print("hen")
-
+        # print(move_options)
         # print(move)
         # print(board_array)
-        if move == [None]:
-            move = 'h8'
-        move_col_number = ord(move[0]) - ord('`')  # Convert from letter to number representation
-        move_row_number = int(move[1])
 
-        print(move_col_number, move_row_number)
-        for row_num in range(1, len(board_array) + 1):  # +1 since a chess board is 1 indexed
-            for col_num in range(1, len(board_array[row_num - 1]) + 1):
-                if (col_num == move_col_number - 1) and (row_num == move_row_number - 1):
+        move_col_number = ord(move[0]) - ord('`') - 1  # Convert from letter to number representation
+        move_row_number = int(move[1]) -1
+
+        for row_num in range(1, len(board_array)):  # +1 since a chess board is 1 indexed
+            for col_num in range(1, len(board_array[row_num])):
+                if (col_num == move_col_number) and (row_num == move_row_number):
                     # Target Piece Parameters
-                    size = 5
-                    thick = 5
+                    size = 40
+                    thick = 2
                     self.target_display = np.zeros((size + thick, size + thick, 3))
+
                     self.target_display = cv2.rectangle(self.target_display, (thick, thick), (size, size), (0, 0, 255),
                                                         thick)
-                    self.options_display = cv2.rectangle(self.target_display, (thick, thick), (size, size), (0, 0, 255),
-                                                        thick)
+                    #self.options_display = cv2.rectangle(self.target_display, (thick, thick), (size, size), (0, 255, 0),
+                    #                                    thick)
                     self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
                                                                 self.target_display, 100 + (col_num - 1) * 50,
                                                                 100 + (row_num - 1) * 50)
                     cv2.imshow("thth", self.target_display)
                     cv2.imshow("ththth", self.bgr_display)
-                    # cv2.waitKey(1000)
-                    print("")
 
-        # return ortho_photo_out
 
     def show_image(self, window_name, board_state):
 
@@ -302,17 +295,11 @@ class CCV:
             self.draw_captured_pieces()
 
             # call mathod here
-            # if any(self.target_display != None):
-            #    self.show_current_moves()
+            # self.show_current_moves()
 
             H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
             H_inv = np.linalg.inv(H)
             ortho_photo = self.add_pieces_to_board(board_state)
-
-            cv2.imshow("test_win", ortho_photo)  # TODO remove
-
-            # warped_targets = cv2.warpPerspective(ortho_photo, H_inv, (self.bgr_display.shape[1], self.bgr_display.shape[0]))
-            # self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA), warped_targets, 0, 0)
             warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
                                                 (self.bgr_display.shape[1], self.bgr_display.shape[0]))
             self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
