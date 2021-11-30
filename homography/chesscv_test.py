@@ -17,11 +17,11 @@ game = gfg.Game()
 while CV.got_video:
     Mext = CV.next_frame()
     if Mext is not None:
-        #CV.draw_spaces_and_origin(Mext)
+        # CV.draw_spaces_and_origin(Mext)
 
-        #get board state
+        # get board state
         # board = game.getGameState()
-        #print board state
+        # print board state
         # print(board)
 
         gameEnded, captured_piece = game.playGame()
@@ -29,15 +29,15 @@ while CV.got_video:
             CV.captured_pieces.append(str(captured_piece))
 
         if (gameEnded):
-            cv2.putText(CV.bgr_display,text=game.outcomeString, org=(10, 40),
-                                    fontFace=cv2.FONT_HERSHEY_TRIPLEX,
-                                    fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display, text=game.outcomeString, org=(10, 40),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
             cv2.putText(CV.bgr_display, text="Play Again? (y/n)", org=(10, CV.cam_height - 20),
                         fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                         fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
-            cv2.putText(CV.bgr_display,text=game.outcomeString, org=(12, 40),
-                                    fontFace=cv2.FONT_HERSHEY_TRIPLEX,
-                                    fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display, text=game.outcomeString, org=(12, 40),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
             cv2.putText(CV.bgr_display, text="Play Again? (y/n)", org=(12, CV.cam_height - 20),
                         fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                         fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
@@ -47,8 +47,8 @@ while CV.got_video:
             elif key_press == ord('n'):
                 break
         else:
-            #get user input
-            #print(param)
+            # get user input
+            # print(param)
             if param[-1] is not None:
                 cv2.putText(CV.bgr_display, text=param[-1], org=(10, 470),
                             # Displays name of clicked square at bottom right of screen
@@ -62,6 +62,17 @@ while CV.got_video:
 
                         game.Human.selectedSquare = param[-1]
                         game.Human.haveSelectedToPiece = True
+
+                    #  find valid moves from board from game object
+                    if game.Human.haveSelectedFromPiece:
+                        legal_moves = list(game.board.legal_moves)
+                        print(legal_moves)
+                        for move in legal_moves:
+                            if move.from_square == param[-1]:
+                                game.Human.my_moves.append(move)
+                        print(game.Human.my_moves)
+                        CV.show_current_moves(board_array=game.getGameState(), move=param[1],
+                                              move_options=game.Human.my_moves)
 
                 param.pop()
 

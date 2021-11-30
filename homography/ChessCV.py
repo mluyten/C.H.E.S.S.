@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import sys
 
+
 class CCV:
     def __init__(self, square_width, board_size, cam_height, cam_width, fps,
                  webcam=True, cam_number=0, input_video=None, write_video=False, output_video=None, chess_icons=None,
@@ -61,14 +62,16 @@ class CCV:
         # stores bgr images and attempts to pull a frame from video_capture device
         self.bgr_image = None
         self.bgr_display = None
+        self.target_display = None
         self.next_frame()
         if not self.got_video:
             print("Cannot read video source")
 
         self.material_dim = 20
-        start =  int((self.cam_height - 16 * self.material_dim) / 2)
+        start = int((self.cam_height - 16 * self.material_dim) / 2)
         self.material_bar = [[(10, start), (30, self.cam_height - start)],
-                             [(self.cam_width - 10 - self.material_dim, start), (self.cam_width - 10, self.cam_height - start)]]
+                             [(self.cam_width - 10 - self.material_dim, start),
+                              (self.cam_width - 10, self.cam_height - start)]]
         self.captured_pieces = []
 
         self.icon_dict = {
@@ -85,7 +88,6 @@ class CCV:
             'P': [0, 5],
             'p': [1, 5]}
 
-
     def readIcons(self, chess_icons):
         # read icons in the order: K, Q, B, N, R, P
         icon_map = cv2.imread(chess_icons, cv2.IMREAD_UNCHANGED)
@@ -93,8 +95,8 @@ class CCV:
         black_pieces = []
 
         for i in range(0, 600, 100):
-            white_piece = icon_map[0:100, i:i+100, :]
-            black_piece = icon_map[100:200, i:i+100, :]
+            white_piece = icon_map[0:100, i:i + 100, :]
+            black_piece = icon_map[100:200, i:i + 100, :]
             white_pieces.append(white_piece)
             black_pieces.append(black_piece)
 
@@ -123,7 +125,8 @@ class CCV:
 
     def find_pose(self, pts):
         pose_found, rvec, tvec = cv2.solvePnP(objectPoints=self.corners_world, imagePoints=pts, cameraMatrix=self.K,
-                                             distCoeffs=None)  # Finds r and t vectors for homography
+                                              distCoeffs=None)  # Finds r and t vectors for homography
+
         if pose_found:
             return True, rvec, tvec
         else:
@@ -136,14 +139,16 @@ class CCV:
             image=self.bgr_image,
             dictionary=aruco_dict
         )
-        ret_val, corners = cv2.findChessboardCorners(image=self.bgr_image, patternSize=(self.board_size, self.board_size))
+        ret_val, corners = cv2.findChessboardCorners(image=self.bgr_image,
+                                                     patternSize=(self.board_size, self.board_size))
 
         if ret_val and ids is not None:
             corners = order_points(corners, aruco_corners[0])
             self.outer_corners = np.array(
                 [[corners[0][0][0], corners[0][0][1]],  # Finds the outer corners of the findChessBoardCorners points
                  [corners[self.board_size - 1][0][0], corners[self.board_size - 1][0][1]],
-                 [corners[self.board_size ** 2 - self.board_size][0][0], corners[self.board_size ** 2 - self.board_size][0][1]],
+                 [corners[self.board_size ** 2 - self.board_size][0][0],
+                  corners[self.board_size ** 2 - self.board_size][0][1]],
                  [corners[self.board_size ** 2 - 1][0][0], corners[self.board_size ** 2 - 1][0][1]]], dtype=np.float32)
 
             gotPose, rvec, tvec = self.find_pose(self.outer_corners)  # Find homography and draw
@@ -170,10 +175,12 @@ class CCV:
                     p = self.K @ Mext @ (np.block([pos, 1]).T)
                     point = (int(p[0] / p[2]), int(p[1] / p[2]))
                     if self.draw_info:
-                        cv2.putText(self.bgr_display, text=str(self.squares[i][j][0].decode("utf-8")), org=tuple(np.array(point) + np.array((-17, 8))),
+                        cv2.putText(self.bgr_display, text=str(self.squares[i][j][0].decode("utf-8")),
+                                    org=tuple(np.array(point) + np.array((-17, 8))),
                                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                     fontScale=0.75, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
-                        cv2.drawMarker(self.bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS, line_type=cv2.LINE_AA)
+                        cv2.drawMarker(self.bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS,
+                                       line_type=cv2.LINE_AA)
 
             if self.outer_corners is not None:
                 found_pose, rvec, tvec = self.find_pose(self.outer_corners)
@@ -182,7 +189,8 @@ class CCV:
                     L = np.linalg.norm(W)
                     d = L / 5
                     p_axes = np.float32([[0, 0, 0], [d, 0, 0], [0, d, 0], [0, 0, d]])
-                    p_img, J = cv2.projectPoints(objectPoints=p_axes, rvec=rvec, tvec=tvec, cameraMatrix=self.K, distCoeffs=None)
+                    p_img, J = cv2.projectPoints(objectPoints=p_axes, rvec=rvec, tvec=tvec, cameraMatrix=self.K,
+                                                 distCoeffs=None)
                     p_img = p_img.reshape(-1, 2)
                     if self.draw_info:
                         cv2.line(self.bgr_display, tuple(np.int32(p_img[0])), tuple(np.int32(p_img[1])), (0, 0, 255), 2,
@@ -200,7 +208,8 @@ class CCV:
                 point[0] = point[0] / point[2]
                 point[1] = point[1] / point[2]
 
-                if point[0] < ((self.board_size + 1) * 100) and point[0] > 0 and point[1] < ((self.board_size + 1) * 100) and point[1] > 0:
+                if point[0] < ((self.board_size + 1) * 100) and point[0] > 0 and point[1] < (
+                        (self.board_size + 1) * 100) and point[1] > 0:
                     param.append(str(self.squares[int(point[1] / 100)][int(point[0] / 100)][0].decode("utf-8")))
                 # else:
                 #     param.append("Not on Board")
@@ -242,14 +251,48 @@ class CCV:
     def add_pieces_to_board(self, board_state):
         # icons are in the order: K, Q, B, N, R, P
         ortho_photo_out = np.zeros((800, 800, 4), dtype=np.uint8)
-
         for row in range(len(board_state)):
             for col in range(len(board_state[row])):
                 if board_state[row, col] != '.':
                     icon = self.icon_dict[board_state[row, col]]
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[icon[0]][icon[1]], 700-col*100, row*100)
+                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[icon[0]][icon[1]],
+                                                               700 - col * 100, row * 100)
 
         return ortho_photo_out
+
+    def show_current_moves(self, board_array, move, move_options):
+        print("henlo")
+        print(move_options)
+        print("hen")
+
+        # print(move)
+        # print(board_array)
+        if move == [None]:
+            move = 'h8'
+        move_col_number = ord(move[0]) - ord('`')  # Convert from letter to number representation
+        move_row_number = int(move[1])
+
+        print(move_col_number, move_row_number)
+        for row_num in range(1, len(board_array) + 1):  # +1 since a chess board is 1 indexed
+            for col_num in range(1, len(board_array[row_num - 1]) + 1):
+                if (col_num == move_col_number - 1) and (row_num == move_row_number - 1):
+                    # Target Piece Parameters
+                    size = 5
+                    thick = 5
+                    self.target_display = np.zeros((size + thick, size + thick, 3))
+                    self.target_display = cv2.rectangle(self.target_display, (thick, thick), (size, size), (0, 0, 255),
+                                                        thick)
+                    self.options_display = cv2.rectangle(self.target_display, (thick, thick), (size, size), (0, 0, 255),
+                                                        thick)
+                    self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
+                                                                self.target_display, 100 + (col_num - 1) * 50,
+                                                                100 + (row_num - 1) * 50)
+                    cv2.imshow("thth", self.target_display)
+                    cv2.imshow("ththth", self.bgr_display)
+                    # cv2.waitKey(1000)
+                    print("")
+
+        # return ortho_photo_out
 
     def show_image(self, window_name, board_state):
 
@@ -258,11 +301,22 @@ class CCV:
             cv2.rectangle(self.bgr_display, self.material_bar[1][0], self.material_bar[1][1], (255, 255, 255), -1)
             self.draw_captured_pieces()
 
+            # call mathod here
+            # if any(self.target_display != None):
+            #    self.show_current_moves()
+
             H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
             H_inv = np.linalg.inv(H)
             ortho_photo = self.add_pieces_to_board(board_state)
-            warped_pieces = cv2.warpPerspective(ortho_photo, H_inv, (self.bgr_display.shape[1], self.bgr_display.shape[0]))
-            self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA), warped_pieces, 0, 0)
+
+            cv2.imshow("test_win", ortho_photo)  # TODO remove
+
+            # warped_targets = cv2.warpPerspective(ortho_photo, H_inv, (self.bgr_display.shape[1], self.bgr_display.shape[0]))
+            # self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA), warped_targets, 0, 0)
+            warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
+                                                (self.bgr_display.shape[1], self.bgr_display.shape[0]))
+            self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
+                                                        warped_pieces, 0, 0)
 
         cv2.imshow(window_name, self.bgr_display)
 
@@ -277,10 +331,9 @@ class CCV:
                 org = (self.material_bar[0][0][0], self.material_bar[0][0][1] + self.material_dim * white_captured)
                 white_captured += 1
             icon = self.icon_dict[piece]
-            self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA), cv2.resize(self.icons[icon[0]][icon[1]], (20,20)), org[0], org[1])
-
-
-
+            self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
+                                                        cv2.resize(self.icons[icon[0]][icon[1]], (20, 20)), org[0],
+                                                        org[1])
 
 
 def closest(lst, K):
@@ -290,8 +343,9 @@ def closest(lst, K):
 def order_points(corners, aruco_location):
     aruco_center = np.array([np.average(aruco_location[0, :, 0]), np.average(aruco_location[0, :, 1])])
 
-    corners_reshape = corners.reshape((49, 2)) # reshape to 40x2 array
-    corner_dist = [np.sqrt((corner[0] - aruco_center[0])**2 + (corner[1] - aruco_center[1])**2) for corner in corners_reshape]
+    corners_reshape = corners.reshape((49, 2))  # reshape to 40x2 array
+    corner_dist = [np.sqrt((corner[0] - aruco_center[0]) ** 2 + (corner[1] - aruco_center[1]) ** 2) for corner in
+                   corners_reshape]
     closest_val = closest([0, 6, 42, 48], np.argmin(corner_dist))
 
     if closest_val == 6:
