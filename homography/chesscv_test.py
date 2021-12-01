@@ -3,7 +3,7 @@ import cv2
 import game_flow.game as gfg
 
 CV = CCV(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=30, webcam=False, draw_info=False,
-         input_video="../test_videos/480_Aruco_Still_2.mp4",
+         input_video="../test_videos/480_Aruco_Board.mp4",
          chess_icons="../assets/chess_pieces.png")
 
 param = [None]
@@ -28,7 +28,7 @@ while CV.got_video:
         if captured_piece is not None:
             CV.captured_pieces.append(str(captured_piece))
 
-        if (gameEnded):
+        if gameEnded:
             cv2.putText(CV.bgr_display, text=game.outcomeString, org=(10, 40),
                         fontFace=cv2.FONT_HERSHEY_TRIPLEX,
                         fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
