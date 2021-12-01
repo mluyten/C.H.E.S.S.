@@ -58,11 +58,6 @@ while CV.got_video:
                         game.Human.selectedSquare = param[-1]
                         game.Human.haveSelectedToPiece = True
 
-                    #  find valid moves from board from game object
-                    # if game.Human.haveSelectedFromPiece:
-                    #     CV.show_current_moves(board_array=game.getGameState(), move=param[1],
-                    #                           move_options=game.Human.my_moves)
-
                 param.pop()
 
             else:
