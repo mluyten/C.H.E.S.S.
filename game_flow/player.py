@@ -29,6 +29,7 @@ class AIPlayer(Player):
             captured_piece = board.piece_at(chess.parse_square(move[2:4]))
         else:
             captured_piece = None
+        print("AI move: ", move)
         board.push_san(move)
         return True, captured_piece
 
@@ -58,7 +59,7 @@ class HumanPlayer(Player):
             for move in legal_moves:
                 if move.from_square == index:
                     self.my_moves.append(move)
-            print(self.my_moves)
+            # print(self.my_moves)
             if (len(self.my_moves) == 0):
                 print("invalid source square. please select a new one")
                 self.haveSelectedFromPiece = False
@@ -86,7 +87,7 @@ class HumanPlayer(Player):
                 captured_piece = None
             move = str(move)
 
-            print("player move: ", move)
+            print("Player move: ", move)
             board.push_san(move)
             # get san
             # push to board

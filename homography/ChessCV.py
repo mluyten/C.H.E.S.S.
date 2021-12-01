@@ -1,3 +1,4 @@
+import chess
 import cv2
 import numpy as np
 import sys
@@ -172,7 +173,7 @@ class CCV:
                 for j in range(self.board_size + 1):
                     pos = np.array([self.square_width / 2 + i * self.square_width,
                                     self.square_width / 2 + j * self.square_width, 0], dtype=np.float32)
-                    p = self.K @ Mext @ (np.block([pos, 1]).T)
+                    p = self.K @ Mext @ np.block([pos, 1]).T
                     point = (int(p[0] / p[2]), int(p[1] / p[2]))
                     if self.draw_info:
                         cv2.putText(self.bgr_display, text=str(self.squares[i][j][0].decode("utf-8")),
@@ -248,16 +249,33 @@ class CCV:
 
         return background
 
-    def add_pieces_to_board(self, board_state):
+    def add_pieces_to_board(self, board_state, my_moves):
         # icons are in the order: K, Q, B, N, R, P
         ortho_photo_out = np.zeros((800, 800, 4), dtype=np.uint8)
+        # add highlighted moves to orthophoto
+        if my_moves is not None and len(my_moves) > 0:
+            for move in my_moves:
+                highlight_square = chess.parse_square(str(move)[2:4])
+                highlight_row = highlight_square // 8
+                highlight_col = highlight_square % 8
+                pt1 = np.array((highlight_col * 100, highlight_row * 100))
+                pt2 = pt1 + 100
+                # if attack, color is red; else, color is yellow.
+                if board_state[highlight_row, 7 - highlight_col] != '.':
+                    color = (0, 0, 255, 100)
+                else:
+                    color = (51, 255, 255, 100)
+                ortho_photo_out = cv2.rectangle(img=ortho_photo_out, pt1=tuple(pt1), pt2=tuple(pt2),
+                                                color=color, thickness=-1, lineType=cv2.LINE_AA)
         for row in range(len(board_state)):
             for col in range(len(board_state[row])):
+                # add chess piece to orthophoto
                 if board_state[row, col] != '.':
                     icon = self.icon_dict[board_state[row, col]]
-                    ortho_photo_out = self.overlay_transparent(ortho_photo_out, self.icons[icon[0]][icon[1]],
+                    ortho_photo_out = self.overlay_transparent(ortho_photo_out,
+                                                               self.icons[icon[0]][icon[1]],
                                                                700 - col * 100, row * 100)
-
+        # cv2.imshow('ortho_photo', ortho_photo_out)
         return ortho_photo_out
 
     def show_current_moves(self, board_array, move, move_options):
@@ -287,19 +305,16 @@ class CCV:
                     cv2.imshow("ththth", self.bgr_display)
 
 
-    def show_image(self, window_name, board_state):
+    def show_image(self, window_name, board_state, my_moves):
 
-        if self.outer_corners is not None and self.corners_ortho is not None:
+        if self.outer_corners is not None and self.corners_ortho is not None and self.bgr_display is not None:
             cv2.rectangle(self.bgr_display, self.material_bar[0][0], self.material_bar[0][1], (0, 0, 0), -1)
             cv2.rectangle(self.bgr_display, self.material_bar[1][0], self.material_bar[1][1], (255, 255, 255), -1)
             self.draw_captured_pieces()
 
-            # call mathod here
-            # self.show_current_moves()
-
             H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
             H_inv = np.linalg.inv(H)
-            ortho_photo = self.add_pieces_to_board(board_state)
+            ortho_photo = self.add_pieces_to_board(board_state, my_moves)
             warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
                                                 (self.bgr_display.shape[1], self.bgr_display.shape[0]))
             self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
