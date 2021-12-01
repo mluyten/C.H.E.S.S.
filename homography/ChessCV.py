@@ -179,9 +179,9 @@ class CCV:
                         cv2.putText(self.bgr_display, text=str(self.squares[i][j][0].decode("utf-8")),
                                     org=tuple(np.array(point) + np.array((-17, 8))),
                                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                    fontScale=0.75, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
-                        cv2.drawMarker(self.bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS,
-                                       line_type=cv2.LINE_AA)
+                                    fontScale=0.6, color=(0, 0, 255), thickness=1, lineType=cv2.LINE_AA)
+                        # cv2.drawMarker(self.bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS,
+                        #                line_type=cv2.LINE_AA)
 
             if self.outer_corners is not None:
                 found_pose, rvec, tvec = self.find_pose(self.outer_corners)
@@ -279,20 +279,30 @@ class CCV:
         return ortho_photo_out
 
 
-    def show_image(self, window_name, board_state, my_moves):
+    def show_image(self, window_name, board_state, my_moves, Mext):
 
         if self.outer_corners is not None and self.corners_ortho is not None and self.bgr_display is not None:
             cv2.rectangle(self.bgr_display, self.material_bar[0][0], self.material_bar[0][1], (0, 0, 0), -1)
             cv2.rectangle(self.bgr_display, self.material_bar[1][0], self.material_bar[1][1], (255, 255, 255), -1)
             self.draw_captured_pieces()
 
-            H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
-            H_inv = np.linalg.inv(H)
-            ortho_photo = self.add_pieces_to_board(board_state, my_moves)
-            warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
-                                                (self.bgr_display.shape[1], self.bgr_display.shape[0]))
-            self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
-                                                        warped_pieces, 0, 0)
+            # H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
+            # H_inv = np.linalg.inv(H)
+            # ortho_photo = self.add_pieces_to_board(board_state, my_moves)
+            # warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
+            #                                     (self.bgr_display.shape[1], self.bgr_display.shape[0]))
+            # self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
+            #                                             warped_pieces, 0, 0)
+            if not self.draw_info:
+                H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
+                H_inv = np.linalg.inv(H)
+                ortho_photo = self.add_pieces_to_board(board_state, my_moves)
+                warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
+                                                    (self.bgr_display.shape[1], self.bgr_display.shape[0]))
+                self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
+                                                            warped_pieces, 0, 0)
+            else:
+                self.draw_spaces_and_origin(Mext)
 
         cv2.imshow(window_name, self.bgr_display)
 

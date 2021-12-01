@@ -2,8 +2,8 @@ from ChessCV import CCV
 import cv2
 import game_flow.game as gfg
 
-CV = CCV(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=60, webcam=False, draw_info=False,
-         input_video="../test_videos/480_Aruco_Board.mp4",
+CV = CCV(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=30, webcam=False, draw_info=False,
+         input_video="../test_videos/480_Aruco_Still_2.mp4",
          chess_icons="../assets/chess_pieces.png")
 
 param = [None]
@@ -69,7 +69,8 @@ while CV.got_video:
 
     CV.show_image(window_name=window_name,
                   board_state=game.getGameState(),
-                  my_moves=game.players[game.currentPlayer].my_moves if game.players[game.currentPlayer] == game.Human else None)
+                  my_moves=game.players[game.currentPlayer].my_moves if game.players[game.currentPlayer] == game.Human else None,
+                  Mext=Mext)
     key_press = cv2.waitKey(int(1000 / CV.fps))
     if key_press == 27:
         break
