@@ -1,13 +1,14 @@
 # C. H. E. S. S.
-#player control
+# player control
 
 import chess
 import random
 
-#enum for turn state:
-    #not my turn
-    #is my trn
-    #have selected my piece
+
+# enum for turn state:
+# not my turn
+# is my trn
+# have selected my piece
 
 class Player:
     def __init__(self, color):
@@ -15,6 +16,7 @@ class Player:
 
     def doMove(self, board):
         pass
+
 
 class AIPlayer(Player):
 
@@ -27,16 +29,19 @@ class AIPlayer(Player):
             captured_piece = board.piece_at(chess.parse_square(move[2:4]))
         else:
             captured_piece = None
+        print("AI move: ", move)
         board.push_san(move)
         return True, captured_piece
+
+    # TODO display AI last move
 
 
 class HumanPlayer(Player):
 
     def __init__(self, color):
         super().__init__(color)
-        #self.isMyTurn = False
-        #self.isMyTurn = False
+        # self.isMyTurn = False
+        # self.isMyTurn = False
         self.haveSelectedFromPiece = False
         self.haveDeterminedMoves = False
         self.haveSelectedToPiece = False
@@ -45,15 +50,16 @@ class HumanPlayer(Player):
 
     def doMove(self, board):
         # print("human do move")
-        if ( not self.haveSelectedFromPiece):
+        if (not self.haveSelectedFromPiece):
             return False, None
-        elif ( not self.haveDeterminedMoves):
+        elif (not self.haveDeterminedMoves):
             legal_moves = list(board.legal_moves)
             index = chess.parse_square(self.selectedSquare)
+            #print(legal_moves)
             for move in legal_moves:
                 if move.from_square == index:
                     self.my_moves.append(move)
-            print(self.my_moves)
+            # print(self.my_moves)
             if (len(self.my_moves) == 0):
                 print("invalid source square. please select a new one")
                 self.haveSelectedFromPiece = False
@@ -81,19 +87,19 @@ class HumanPlayer(Player):
                 captured_piece = None
             move = str(move)
 
-            print("player move: ", move)
+            print("Player move: ", move)
             board.push_san(move)
-            #get san
-            #push to board
-            #reset move state
+            # get san
+            # push to board
+            # reset move state
             self.haveSelectedFromPiece = False
             self.haveDeterminedMoves = False
             self.haveSelectedToPiece = False
             self.my_moves = []
             return True, captured_piece
 
-        #random_index = int(random.random() * len(legal_moves))
-        #move = str(legal_moves[random_index])
-        #board.push_san(move)
-        #self.isMyTurn = False
+        # random_index = int(random.random() * len(legal_moves))
+        # move = str(legal_moves[random_index])
+        # board.push_san(move)
+        # self.isMyTurn = False
         return False, None
