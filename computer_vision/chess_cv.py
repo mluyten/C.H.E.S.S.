@@ -4,7 +4,7 @@ import numpy as np
 import sys
 
 
-class CCV:
+class ccv:
     def __init__(self, square_width, board_size, cam_height, cam_width, fps,
                  webcam=True, cam_number=0, input_video=None, write_video=False, output_video=None, chess_icons=None,
                  draw_info=False,
@@ -181,8 +181,6 @@ class CCV:
                                     org=tuple(np.array(point) + np.array((-17, 8))),
                                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                     fontScale=0.6, color=(0, 0, 255), thickness=1, lineType=cv2.LINE_AA)
-                        # cv2.drawMarker(self.bgr_display, position=point, color=(0, 0, 255), markerType=cv2.MARKER_CROSS,
-                        #                line_type=cv2.LINE_AA)
 
             if self.outer_corners is not None:
                 found_pose, rvec, tvec = self.find_pose(self.outer_corners)
@@ -213,8 +211,6 @@ class CCV:
                 if point[0] < ((self.board_size + 1) * 100) and point[0] > 0 and point[1] < (
                         (self.board_size + 1) * 100) and point[1] > 0:
                     param.append(str(self.squares[int(point[1] / 100)][int(point[0] / 100)][0].decode("utf-8")))
-                # else:
-                #     param.append("Not on Board")
 
     # https://stackoverflow.com/questions/40895785/using-opencv-to-overlay-transparent-image-onto-another-image
     def overlay_transparent(self, background, overlay, x, y):
@@ -287,13 +283,6 @@ class CCV:
             cv2.rectangle(self.bgr_display, self.material_bar[1][0], self.material_bar[1][1], (255, 255, 255), -1)
             self.draw_captured_pieces()
 
-            # H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
-            # H_inv = np.linalg.inv(H)
-            # ortho_photo = self.add_pieces_to_board(board_state, my_moves)
-            # warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
-            #                                     (self.bgr_display.shape[1], self.bgr_display.shape[0]))
-            # self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),
-            #                                             warped_pieces, 0, 0)
             if not self.draw_info:
                 H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
                 H_inv = np.linalg.inv(H)
