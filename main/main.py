@@ -60,7 +60,8 @@ while ccv.got_video:
     ccv.show_image(window_name=window_name,
                   board_state=game.getGameState(),
                   my_moves=game.players[game.currentPlayer].my_moves if game.players[game.currentPlayer] == game.Human else None,
-                    Mext=Mext)
+                  selected_piece=game.players[game.currentPlayer].fromPiece if game.players[game.currentPlayer] == game.Human else None,
+                  Mext=Mext)
     key_press = cv2.waitKey(int(1000 / ccv.fps))
     if key_press == 27:
         break
