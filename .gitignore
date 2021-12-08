@@ -1,5 +1,6 @@
 .idea/
 game_flow/__pycache__
 homography/__pycache__
+computer_vision/__pychache__
 chess_1080.mp4
 1080_Aruco_Board.mp4
