@@ -52,7 +52,7 @@ class CCV:
         self.write_video = write_video
         if write_video:
             fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-            self.videoWriter = cv2.VideoWriter(output_video, fourcc=fourcc, fps=30.0, frameSize=(cam_width, cam_height))
+            self.videoWriter = cv2.VideoWriter(output_video, fourcc=fourcc, fps=self.fps, frameSize=(cam_width, cam_height))
         # streams video from webcam if webcam flag is true - else, streams video from local video file
         if webcam:
             self.video_capture = cv2.VideoCapture(cam_number)  # Open video capture object
@@ -110,7 +110,7 @@ class CCV:
     def next_frame(self):  # pulls frames from
         if self.bgr_display is not None:
             if self.write_video:
-                self.videoWriter.write(self.bgr_display)
+                self.videoWriter.write(self.bgr_display[:,:,:3])
 
         self.got_video, self.bgr_image = self.video_capture.read()
         self.bgr_display = np.copy(self.bgr_image)

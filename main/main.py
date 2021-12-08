@@ -1,60 +1,67 @@
-# C.H.E.S.S
-
-import sys
+from homography.ChessCV import CCV
 import cv2
-import numpy as np
+import game_flow.game as gfg
 
-CAM_NUM = 0
-CAM_WIDTH = 640
-CAM_HEIGHT = 480
-FPS = 30
+CV = CCV(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=60, webcam=False, draw_info=False,
+         input_video="../test_videos/480_Aruco_Still.mp4",
+         chess_icons="../assets/chess_pieces.png",
+         write_video=False, output_video="Demo.mp4")
 
+param = [None]
+key_press = None
+window_name = 'C.H.E.S.S.'
+cv2.namedWindow(window_name)
+cv2.setMouseCallback(window_name, CV.click, param)
 
-def main():
-    # read in camera matrix and distortion coefficients
-    cam_mat_file = open('../camera_calibration/camera_matrix.csv', 'rb')
-    dist_coeff_file = open('../camera_calibration/dist_coeff.csv', 'rb')
-    # read matrices from file
-    K = np.loadtxt(cam_mat_file, delimiter=',')
-    dist_coeffs = np.loadtxt(dist_coeff_file, delimiter=',')
-    # close files
-    cam_mat_file.close()
-    dist_coeff_file.close()
+game = gfg.Game()
 
-    # Initialize image capture from camera.
-    video_capture = cv2.VideoCapture(CAM_NUM)  # Open videoq capture object
-    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, CAM_WIDTH)   # set cam width
-    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, CAM_HEIGHT)  # set cam height
-    print(f'Initialized camera with resolution {CAM_WIDTH}x{CAM_HEIGHT}')
+while CV.got_video:
+    Mext = CV.next_frame()
+    if Mext is not None:
 
-    is_ok, bgr_image_input = video_capture.read()  # Make sure we can read video
-    if not is_ok:
-        print("Cannot read video source")
-        sys.exit()
+        gameEnded, captured_piece = game.playGame()
+        if captured_piece is not None:
+            CV.captured_pieces.append(str(captured_piece))
 
-    print("Hit ESC to quit...")
+        if (gameEnded):
+            cv2.putText(CV.bgr_display, text=game.outcomeString, org=(10, 40),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display, text="Play Again? (y/n)", org=(10, CV.cam_height - 20),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(0, 0, 0), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display, text=game.outcomeString, org=(12, 40),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(CV.bgr_display, text="Play Again? (y/n)", org=(12, CV.cam_height - 20),
+                        fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+                        fontScale=1.15, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
+            if key_press == ord('y'):
+                game.resetBoard()
+                CV.captured_pieces = []
+            elif key_press == ord('n'):
+                break
+        else:
+            # get user input
+            if param[-1] is not None:
+                if game.players[game.currentPlayer] == game.Human:
+                    if not game.Human.haveSelectedFromPiece:
+                        game.Human.selectedSquare = param[-1]
+                        game.Human.haveSelectedFromPiece = True
+                    elif (not game.Human.haveSelectedToPiece) and game.Human.haveDeterminedMoves:
+                        game.Human.selectedSquare = param[-1]
+                        game.Human.haveSelectedToPiece = True
 
-    while True:
-        got_vid, bgr_image = video_capture.read()
-        if not got_vid:
-            break  # no camera, or reached end of video file
+                param.pop()
 
-        # Find the chess board corners.
-        ret_val, corners = cv2.findChessboardCorners(image=bgr_image, patternSize=(7, 7))
+            else:
+                pass
 
-        # Draw corners on a copy of the image.
-        bgr_display = bgr_image.copy()
-        cv2.drawChessboardCorners(image=bgr_display, patternSize=(7, 7), corners=corners, patternWasFound=ret_val)
-
-        # Wait for FPS frames-per-second.
-        cv2.imshow('Cam Feed', bgr_display)
-        key_pressed = cv2.waitKey(int(1000 / FPS))
-        if key_pressed == 27:
-            break
-
-    video_capture.release()
-    cv2.destroyAllWindows()
-
-
-if __name__ == '__main__':
-    main()
+    CV.show_image(window_name=window_name,
+                  board_state=game.getGameState(),
+                  my_moves=game.players[game.currentPlayer].my_moves if game.players[game.currentPlayer] == game.Human else None)
+    key_press = cv2.waitKey(int(1000 / CV.fps))
+    if key_press == 27:
+        break
+if CV.write_video:
+    CV.videoWriter.release()
