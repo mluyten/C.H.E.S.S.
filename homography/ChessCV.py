@@ -250,7 +250,7 @@ class CCV:
 
         return background
 
-    def add_pieces_to_board(self, board_state, my_moves):
+    def add_pieces_to_board(self, board_state, my_moves, selected_piece):
         # icons are in the order: K, Q, B, N, R, P
         ortho_photo_out = np.zeros((800, 800, 4), dtype=np.uint8)
         # add highlighted moves to orthophoto
@@ -268,6 +268,15 @@ class CCV:
                     color = (51, 255, 255, 100)
                 ortho_photo_out = cv2.rectangle(img=ortho_photo_out, pt1=tuple(pt1), pt2=tuple(pt2),
                                                 color=color, thickness=-1, lineType=cv2.LINE_AA)
+        if selected_piece is not None:
+            highlight_row = selected_piece // 8
+            highlight_col = selected_piece % 8
+            pt1 = np.array((highlight_col * 100, highlight_row * 100))
+            pt2 = pt1 + 100
+            color = (255, 0, 255, 100)
+            ortho_photo_out = cv2.rectangle(img=ortho_photo_out, pt1=tuple(pt1), pt2=tuple(pt2),
+                                            color=color, thickness=-1, lineType=cv2.LINE_AA)
+
         for row in range(len(board_state)):
             for col in range(len(board_state[row])):
                 # add chess piece to orthophoto
@@ -280,7 +289,8 @@ class CCV:
         return ortho_photo_out
 
 
-    def show_image(self, window_name, board_state, my_moves, Mext):
+
+    def show_image(self, window_name, board_state, my_moves, selected_piece, Mext):
 
         if self.outer_corners is not None and self.corners_ortho is not None and self.bgr_display is not None:
             cv2.rectangle(self.bgr_display, self.material_bar[0][0], self.material_bar[0][1], (0, 0, 0), -1)
@@ -297,7 +307,7 @@ class CCV:
             if not self.draw_info:
                 H, _ = cv2.findHomography(self.outer_corners, self.corners_ortho)  # Finds orthophoto homography
                 H_inv = np.linalg.inv(H)
-                ortho_photo = self.add_pieces_to_board(board_state, my_moves)
+                ortho_photo = self.add_pieces_to_board(board_state, my_moves, selected_piece)
                 warped_pieces = cv2.warpPerspective(ortho_photo, H_inv,
                                                     (self.bgr_display.shape[1], self.bgr_display.shape[0]))
                 self.bgr_display = self.overlay_transparent(cv2.cvtColor(self.bgr_display, cv2.COLOR_BGR2BGRA),

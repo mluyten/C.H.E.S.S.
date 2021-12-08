@@ -45,6 +45,7 @@ class HumanPlayer(Player):
         self.haveSelectedFromPiece = False
         self.haveDeterminedMoves = False
         self.haveSelectedToPiece = False
+        self.fromPiece = None
         self.selectedSquare = None
         self.my_moves = []
 
@@ -53,6 +54,7 @@ class HumanPlayer(Player):
         if (not self.haveSelectedFromPiece):
             return False, None
         elif (not self.haveDeterminedMoves):
+            self.fromPiece = chess.parse_square(self.selectedSquare)
             legal_moves = list(board.legal_moves)
             index = chess.parse_square(self.selectedSquare)
             #print(legal_moves)
@@ -63,6 +65,7 @@ class HumanPlayer(Player):
             if (len(self.my_moves) == 0):
                 print("invalid source square. please select a new one")
                 self.haveSelectedFromPiece = False
+                self.fromPiece = None
                 return False, None
             self.haveDeterminedMoves = True
             return False, None
@@ -71,6 +74,14 @@ class HumanPlayer(Player):
         else:
             my_move = None
             index = chess.parse_square(self.selectedSquare)
+            if index == self.fromPiece:
+                self.haveSelectedFromPiece = False
+                self.haveDeterminedMoves = False
+                self.haveSelectedToPiece = False
+                self.my_moves = []
+                self.fromPiece = None
+                return False, None
+            #print(self.my_moves)
             for move in self.my_moves:
                 if move.to_square == index:
                     my_move = move
@@ -79,7 +90,6 @@ class HumanPlayer(Player):
                 print("invalid destination square. please select a new one")
                 self.haveSelectedToPiece = False
                 return False, None
-
             if board.is_capture(move):
                 captured_piece = str(board.piece_at(chess.parse_square(str(move)[2:4])))
             else:
@@ -96,6 +106,7 @@ class HumanPlayer(Player):
             self.haveDeterminedMoves = False
             self.haveSelectedToPiece = False
             self.my_moves = []
+            self.fromPiece = None
             return True, captured_piece
 
         # random_index = int(random.random() * len(legal_moves))
