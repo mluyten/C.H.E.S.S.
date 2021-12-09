@@ -8,7 +8,8 @@ class ccv:
     def __init__(self, square_width, board_size, cam_height, cam_width, fps,
                  webcam=True, cam_number=0, input_video=None, write_video=False, output_video=None, chess_icons=None,
                  draw_info=False,
-                 cam_mat='../camera_calibration/camera_matrix.csv', dist_coeff='../camera_calibration/dist_coeff.csv'):
+                 cam_mat='../camera_calibration/camera_matrix.csv', dist_coeff='../camera_calibration/dist_coeff.csv',
+                 select_color=(255, 0, 255, 100), attack_color=(0, 0, 255, 100), move_color=(51, 255, 255, 100)):
         # read in camera matrix and distortion coefficients
         self.got_video = None
         cam_mat_file = open(cam_mat, 'rb')
@@ -89,6 +90,10 @@ class ccv:
             'r': [1, 4],
             'P': [0, 5],
             'p': [1, 5]}
+
+        self.select_color = select_color
+        self.attack_color = attack_color
+        self.move_color = move_color
 
     def readIcons(self, chess_icons):
         # read icons in the order: K, Q, B, N, R, P
@@ -259,9 +264,9 @@ class ccv:
                 pt2 = pt1 + 100
                 # if attack, color is red; else, color is yellow.
                 if board_state[highlight_row, 7 - highlight_col] != '.':
-                    color = (0, 0, 255, 100)
+                    color = self.attack_color
                 else:
-                    color = (51, 255, 255, 100)
+                    color = self.move_color
                 ortho_photo_out = cv2.rectangle(img=ortho_photo_out, pt1=tuple(pt1), pt2=tuple(pt2),
                                                 color=color, thickness=-1, lineType=cv2.LINE_AA)
         if selected_piece is not None:
@@ -269,9 +274,8 @@ class ccv:
             highlight_col = selected_piece % 8
             pt1 = np.array((highlight_col * 100, highlight_row * 100))
             pt2 = pt1 + 100
-            color = (255, 0, 255, 100)
             ortho_photo_out = cv2.rectangle(img=ortho_photo_out, pt1=tuple(pt1), pt2=tuple(pt2),
-                                            color=color, thickness=-1, lineType=cv2.LINE_AA)
+                                            color=self.select_color, thickness=-1, lineType=cv2.LINE_AA)
 
         for row in range(len(board_state)):
             for col in range(len(board_state[row])):
@@ -281,7 +285,6 @@ class ccv:
                     ortho_photo_out = self.overlay_transparent(ortho_photo_out,
                                                                self.icons[icon[0]][icon[1]],
                                                                700 - col * 100, row * 100)
-        # cv2.imshow('ortho_photo', ortho_photo_out)
         return ortho_photo_out
 
 
