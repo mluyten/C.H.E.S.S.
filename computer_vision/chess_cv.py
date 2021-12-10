@@ -335,7 +335,6 @@ def order_points(corners, aruco_location):
     corners_reshape = corners.reshape((49, 2))  # reshape to 40x2 array
     corner_dist = [np.sqrt((corner[0] - aruco_center[0]) ** 2 + (corner[1] - aruco_center[1]) ** 2) for corner in
                    corners_reshape]
-    # closest_val = closest([0, 6, 42, 48], np.argmin(corner_dist))
     closest_val = closest([0, 1, 7, 5, 6, 13, 35, 42, 43, 41, 47, 48], np.argmin(corner_dist))
 
     if closest_val in [5, 6, 13]:

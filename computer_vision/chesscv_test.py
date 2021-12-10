@@ -1,8 +1,8 @@
-from ChessCV import CCV
+from chess_cv import ccv
 import cv2
 import game_flow.game as gfg
 
-CV = CCV(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=30, webcam=False, draw_info=False,
+CV = ccv(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=30, webcam=False, draw_info=False,
          input_video="../test_videos/480_Aruco_Board.mp4",
          chess_icons="../assets/chess_pieces.png")
 
@@ -18,12 +18,6 @@ game = gfg.Game()
 while CV.got_video:
     Mext = CV.next_frame()
     if Mext is not None:
-        # CV.draw_spaces_and_origin(Mext)
-
-        # get board state
-        # board = game.getGameState()
-        # print board state
-        # print(board)
 
         gameEnded, captured_piece = game.playGame()
         if captured_piece is not None:
@@ -48,7 +42,7 @@ while CV.got_video:
             # Prompt the user if they would like to play again
             if key_press == ord('y'):
                 game.resetBoard()
-                CV.captured_pieces = [] # Empty out the set of captured pieces
+                CV.captured_pieces = []  # Empty out the set of captured pieces
             elif key_press == ord('n'):
                 break
         else:   # If the game is not yet over:
@@ -62,14 +56,10 @@ while CV.got_video:
                         game.Human.selectedSquare = param[-1]   # Get the users desired place to move their piece
                         game.Human.haveSelectedToPiece = True
 
-                param.pop() # Remove the most recent user input [mouse click event]
+                param.pop()  # Remove the most recent user input [mouse click event]
 
             else:
                 pass    # If the chessboard cannot be found then don't change anything and wait until it can be seen
-                # CV.outer_corners = None
-                # cv2.putText(CV.bgr_display, text="Chessboard/ArUco Not Found", org=(10, 470),
-                #             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                #             fontScale=1, color=(255, 0, 255), thickness=2)
 
     # Display the updated chessboard. Only show the available moves if the current player is the human
     CV.show_image(window_name=window_name,
