@@ -3,8 +3,8 @@ import cv2
 import game_flow.game as gfg
 
 ccv = ccv(square_width=17, board_size=7, cam_height=480, cam_width=640, fps=60, webcam=False, draw_info=False,
-         input_video="../test_videos/480_Aruco_Still.mp4",
-         chess_icons="../assets/chess_pieces.png",
+         input_video="../test_videos/480_Aruco_Board.mp4",
+         chess_icons="../assets/chess_pieces_alt.png",
          write_video=False, output_video="Demo.mp4")
 
 param = [None]
