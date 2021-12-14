@@ -7,7 +7,7 @@
 * `python-chess`
 * `numpy`
 
-You can download our Anaconda environment [here](www.google.com).
+You can download our Anaconda environment [here](https://raw.githubusercontent.com/mluyten/CHESS/master/chess_cv_final_project_env.yaml).
 Python 3.7 was used in development.
 
 ### Usage
