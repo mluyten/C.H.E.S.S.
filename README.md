@@ -20,10 +20,14 @@ Python 3.7 was used in development.
 * The `chess_icons` parameter in the `ccv` object instantiation can also be changed to the path of a chesspiece template.
   * Default: `chess_icons="../assets/chess_pieces.png"`
   * Alternate: `chess_icons="../assets/chess_pieces_alt.png"`
+  
+### References
+* Default chess piece from [FreeVector.com](https://www.freevector.com/chess-icons-vector-set-20658)
 
 ## Project Goals and Requirements
 
 ### Objective
+We aim to create an augmented reality game of chess with no physical chess pieces; pieces are displayed on a video feed from a camera that is observing the board. Pieces shall be moved virtually by the user. For the initial implementation, the user will move a piece by clicking on the square of the piece it wishes to move and then clicking on the desired location for said pieces. As moves are made, the corresponding pieces are moved on screen. We plan to display the chess pieces as 2D pieces on the chessboard.
 We aim to create an augmented reality game of chess with no physical chess pieces; pieces are displayed on a video feed from a camera that is observing the board. Pieces shall be moved virtually by the user. For the initial implementation, the user will move a piece by clicking on the square of the piece it wishes to move and then clicking on the desired location for said pieces. As moves are made, the corresponding pieces are moved on screen. We plan to display the chess pieces as 2D pieces on the chessboard.
 
 ### Stretch Goals
